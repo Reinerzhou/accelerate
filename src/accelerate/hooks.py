@@ -27,6 +27,21 @@ from .utils import (
     set_module_tensor_to_device,
 )
 
+import inspect
+import torch._dynamo.skipfiles as skipfiles
+
+def skip_inner_func(outer, inner_name):
+    for c in outer.__code__.co_consts:
+        if inspect.iscode(c):
+            if c.co_name == inner_name:
+                torch._dynamo.eval_frame.skip_code(c)
+                break
+
+skipfiles.add(__name__)
+
+from accelerate.utils.operations import convert_to_fp32
+skip_inner_func(convert_to_fp32, "_is_fp16_bf16_tensor")
+skip_inner_func(convert_to_fp32, "_convert_to_fp32")
 
 class ModelHook:
     """
