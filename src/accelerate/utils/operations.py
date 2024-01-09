@@ -21,6 +21,7 @@ from functools import update_wrapper
 from typing import Any, Mapping
 
 import torch
+from torch.autograd.profiler import record_function
 
 from ..state import PartialState
 from .constants import TORCH_DISTRIBUTED_OPERATION_TYPES
@@ -491,6 +492,7 @@ def reduce(tensor, reduction="mean"):
     return recursively_apply(_reduce_across_processes, tensor, error_on_other_type=True, reduction=reduction)
 
 
+@torch._dynamo.disable(recursive=True)
 def convert_to_fp32(tensor):
     """
     Recursively converts the elements nested list/tuple/dictionary of tensors in FP16/BF16 precision to FP32.
